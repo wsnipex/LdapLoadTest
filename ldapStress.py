@@ -16,6 +16,7 @@ def usage():
     print "-p  port"
     print "-D  userdn"
     print "-w  password"
+    print "-b  base DN"
     print "-f  inputfiles, format: 1 string per line, multiple files allowed"
     print "-d  print search results"
     print "-v  be verbose"
@@ -47,13 +48,15 @@ def main ():
     sfilter = ""
     threadnum = 1
     thread = ""
+    global basedn
+    basedn = ""
     threads = []
     stats = []
     global lock
     lock = threading.RLock()
     
     try:
-        opts, args = getopt.gnu_getopt(sys.argv[1:], "h:p:D:w:f:ds:t:rv")
+        opts, args = getopt.gnu_getopt(sys.argv[1:], "h:p:D:w:f:ds:t:rvb:")
     except getopt.GetoptError:
         # print help information and exit:
         usage()
@@ -72,6 +75,8 @@ def main ():
             user = a
         if o == "-w":
             passwd = a
+        if o == "-b":
+            basedn = a
         if o == "-f":
             fromfile = True
             searchinput.append(getfromfile(a))
@@ -181,7 +186,6 @@ def ldapsearch(tname, host, port, user, passwd, searchinput, sfilter, rawinput):
 
 def mysearch(l, keyword, tname=""):
     
-    basedn = "ou=subscribers,o=mobilkom.at"
     scope = ldap.SCOPE_SUBTREE
     ldapfilter = keyword
     attrib = None     # return all Attr
