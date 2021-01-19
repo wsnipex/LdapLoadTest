@@ -1,4 +1,4 @@
-#! /usr/bin/python
+#! /usr/bin/python3
 '''
 Created on March 30, 2012
 
@@ -10,26 +10,26 @@ from time import time
 
 
 def usage():
-    print "Ldapstress: Ldap stress testing"
-    print "Usage:", sys.argv[0], "-h hostname -p port -D username -w password -s searchfilter [-f inputfile] [-d]"
-    print "-h  hostname"
-    print "-p  port"
-    print "-D  userdn"
-    print "-w  password"
-    print "-b  base DN"
-    print "-f  inputfiles, format: 1 string per line, multiple files allowed"
-    print "-d  print search results"
-    print "-v  be verbose"
+    print("Ldapstress: Ldap stress testing")
+    print("Usage:", sys.argv[0], "-h hostname -p port -D username -w password -s searchfilter [-f inputfile] [-d]")
+    print("-h  hostname")
+    print("-p  port")
+    print("-D  userdn")
+    print("-w  password")
+    print("-b  base DN")
+    print("-f  inputfiles, format: 1 string per line, multiple files allowed")
+    print("-d  print search results")
+    print("-v  be verbose")
     #print "-l  ldif output"
-    print "-t  number of threads"
-    print "searchfilter has to be in ldapsearch filter format" 
-    print "   enclose in ' if necessary"
-    print "   %s is allowed as replacement char when -f is used"
-    print "   each occurance of %s will be replaced with one line of the input file"
-    print "-r  raw input in inputfile: File contains complete ldap search filter"
-    print 
-    print "Example: ./ldapStress.py -f msisdns1.txt -f msisdns2.txt -s '(|(submsisdn=%s)(subxc1msisdn=%s))' -t 2"
-    print
+    print("-t  number of threads")
+    print("searchfilter has to be in ldapsearch filter format") 
+    print("   enclose in ' if necessary")
+    print("   %s is allowed as replacement char when -f is used")
+    print("   each occurance of %s will be replaced with one line of the input file")
+    print("-r  raw input in inputfile: File contains complete ldap search filter")
+    print() 
+    print("Example: ./ldapStress.py -f msisdns1.txt -f msisdns2.txt -s '(|(submsisdn=%s)(subxc1msisdn=%s))' -t 2")
+    print()
 
 
 def main ():
@@ -92,7 +92,7 @@ def main ():
             if (a >= "1"):
                 threadnum = int(a)
             else:
-                print "number of threads must be >= 1"
+                print("number of threads must be >= 1")
                 sys.exit(2)
 
     
@@ -141,16 +141,16 @@ def ldapsearch(tname, host, port, user, passwd, searchinput, sfilter, rawinput):
     runtime = 0
     
     try:
-        l = ldap.open(host, port)
+        l = ldap.initialize("ldap://" + host + ":" + str(port))
         l.simple_bind_s(user, passwd)
 
         if (verbose):
-            print "#", tname, "Successfully bound to server.\n"
+            print("#", tname, "Successfully bound to server.\n")
         if (len(searchinput) > 0):  # We are using an inputfile with search data
             start = time()
             if (verbose):
                 lock.acquire(blocking=1)
-                print "#", tname, "Searchinput", searchinput
+                print("#", tname, "Searchinput", searchinput)
                 lock.release()
                 
             for i in searchinput:
@@ -171,15 +171,15 @@ def ldapsearch(tname, host, port, user, passwd, searchinput, sfilter, rawinput):
             #print "single search"
             if (details) and (verbose):
                 lock.acquire(blocking=1)
-                print "#", tname, "Searchfilter:", sfilter
+                print("#", tname, "Searchfilter:", sfilter)
                 lock.release()
             start = time()
             runtime = mysearch(l, sfilter, tname)
             elapsed = time() - start
             return (runtime, 1, elapsed)
                         
-    except ldap.LDAPError, error_message:
-        print "Couldn't Connect. %s " % error_message
+    except ldap.LDAPError as error_message:
+        print("Couldn't Connect. %s " % error_message)
         os._exit(3)
         
 
@@ -198,28 +198,28 @@ def mysearch(l, keyword, tname=""):
             lock.acquire(blocking=1)
             for dn, entry in result:
                 if (verbose):
-                    print "#", tname, "Searchfilter:", ldapfilter
+                    print("#", tname, "Searchfilter:", ldapfilter)
                 handle_ldap_entry(dn, entry, tname)
-                print "#", tname, "Num Results:", len(result), " ; Search took", "%d" % float(elapsed * 1000), "ms\n\n"
+                print("#", tname, "Num Results:", len(result), " ; Search took", "%d" % float(elapsed * 1000), "ms\n\n")
                 
             lock.release()
                 
         #print "Results:", len(result)
         return elapsed
         
-    except ldap.LDAPError, error:
-        print "Error", error
+    except ldap.LDAPError as error:
+        print("Error", error)
         
 
 def handle_ldap_entry(dn, result, tname):
     
-    print "#", tname, "Result:"
+    print("#", tname, "Result:")
     ldifout = ldif.LDIFWriter(sys.stdout)
     ldifout.unparse(dn, result)
     
     
 def printstats(tname, runtime, counter, elapsed):
-    print "#",tname, "Processed:", counter, "Searches ; Thread execution time:", "%.2f" % elapsed, "sec", "; Average time/search:", "%d" % float((runtime / counter) * 1000), "ms", "; Searches/sec:", "%.2f" % float(1/(runtime / counter)), "#"
+    print("#",tname, "Processed:", counter, "Searches ; Thread execution time:", "%.2f" % elapsed, "sec", "; Average time/search:", "%d" % float((runtime / counter) * 1000), "ms", "; Searches/sec:", "%.2f" % float(1/(runtime / counter)), "#")
     
     
 class ThreadClass(threading.Thread): 
